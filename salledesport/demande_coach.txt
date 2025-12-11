@@ -1,0 +1,7 @@
+ahlem;Cardio;Coach Karim Fit;9h;8;12;2025;En ligne;Avec;can't wait
+ahlem;Cardio;Coach Karim Fit;9h;8;12;2025;En salle;Avec;can't wait
+sisi;HIIT;Coach Karim Fit;10h;22;12;2025;En ligne;Avec;jbkjbnjbn
+sisi;HIIT;Coach Karim Fit;10h;22;12;2025;En ligne;Sans;jbkjbnjbn
+nrehij;CrossFit;Coach Maya ;;22;12;2025;En salle;Avec;
+;HIIT;Coach Sam Flex;11;29;12;2025;En salle;Avec;ah
+14620260;CrossFit;Coach Nora Motion;9h;16;12;2025;En salle;Avec;nice
