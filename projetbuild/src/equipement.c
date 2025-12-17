@@ -106,47 +106,6 @@ int supprimerEquipement(char *filename, char *reference)
     return trouve;
 }
 
-void afficherEquipementsCTree(GtkWidget *ctree)
-{
-    GtkCTree *tree = GTK_CTREE(ctree);
-    GtkCTreeNode *node;
-
-    // Vider le treeview avant d’ajouter
-    gtk_clist_clear(GTK_CLIST(ctree));
-
-    FILE *f = fopen("equipements.txt", "r");
-    if (!f) return;
-
-    Equipement e;
-
-    while (fscanf(f, "%[^,],%[^,],%[^,],%d,%d,%d\n",
-                  e.reference, e.nom, e.type,
-                  &e.quantite, &e.etat, &e.localisation) != EOF)
-    {
-        char *data[6];
-
-        data[0] = e.reference;
-        data[1] = e.nom;
-        data[2] = e.type;
-
-        static char buffer_qte[10];
-        sprintf(buffer_qte, "%d", e.quantite);
-        data[3] = buffer_qte;
-
-        data[4] = (char*) etat_to_string(e.etat);
-        data[5] = (char*) localisation_to_string(e.localisation);
-
-        node = gtk_ctree_insert_node(
-                    tree, NULL, NULL,
-                    data, 0, NULL, NULL, NULL, NULL,
-                    FALSE, FALSE);
-    }
-
-    fclose(f);
-}
-
-
-
 
 void afficherEquipements(char *filename)
 {

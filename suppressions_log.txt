@@ -1,0 +1,36 @@
+=== SUPPRESSION COACH ===
+Date/Heure: 2025-12-13 15:42:44
+ID: 2
+Nom: boukadida
+Prénom: halouma
+Raison: Suppression directe
+Commentaire: 
+=========================
+
+=== SUPPRESSION COACH ===
+Date/Heure: 2025-12-13 17:50:58
+ID: 1
+Nom: chef
+Prénom: chef
+Raison: Suppression directe
+Commentaire: 
+=========================
+
+=== SUPPRESSION COACH ===
+Date/Heure: 2025-12-13 23:36:37
+ID: 3
+Nom: boukadida
+Prénom: halouma
+Raison: Suppression directe
+Commentaire: 
+=========================
+
+=== SUPPRESSION COACH ===
+Date/Heure: 2025-12-14 17:03:59
+ID: 13
+Nom: boukadida
+Prénom: halouma
+Raison: Suppression directe
+Commentaire: 
+=========================
+

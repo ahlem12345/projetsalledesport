@@ -1,7 +1,6 @@
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
-
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,9 +16,7 @@
 #define FICHIER_EQUIPEMENTS "equipements.txt"
 #define FICHIER_RESERVATIONS "reservations.txt"
 
-// ============================================================================
 // FONCTIONS UTILITAIRES POUR AFFICHAGE
-// ============================================================================
 
 // Fonction pour convertir l'état en chaîne (pour affichage)
 const char* etat_to_string(int etat) {
@@ -40,9 +37,8 @@ const char* localisation_to_string(int loc) {
     }
 }
 
-// ============================================================================
 // FONCTIONS UTILITAIRES POUR FICHIER CSV
-// ============================================================================
+
 
 // Fonction pour convertir l'état en chaîne pour le fichier
 const char* etat_to_file_string(int etat) {
@@ -78,9 +74,8 @@ int string_to_localisation(const char* str) {
     return DANS_LA_SALLE;
 }
 
-// ============================================================================
+
 // FONCTIONS POUR MESSAGES
-// ============================================================================
 
 // Fonction pour afficher un message d'erreur
 void show_error_message(const char *message) {
@@ -122,10 +117,106 @@ void get_current_date(char *date_str) {
     sprintf(date_str, "%02d/%02d/%04d", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900);
 }
 
+void rafraichir_treeview(GtkWidget *treeview) {
+    if (!treeview) return;
 
-// ============================================================================
+    GtkListStore *store = gtk_list_store_new(6,
+        G_TYPE_STRING,
+        G_TYPE_STRING,
+        G_TYPE_STRING,
+        G_TYPE_INT,
+        G_TYPE_STRING,
+        G_TYPE_STRING);
+
+    FILE *f = fopen(FICHIER_EQUIPEMENTS, "r");
+    if (!f) return;
+
+    char ligne[512];
+    while (fgets(ligne, sizeof(ligne), f)) {
+        Equipement e;
+        char etat_str[50], loc_str[50];
+        if (sscanf(ligne, "%[^,],%[^,],%[^,],%d,%[^,],%s",
+                   e.reference, e.nom, e.type, &e.quantite,
+                   etat_str, loc_str) == 6) {
+            e.etat = string_to_etat(etat_str);
+            e.localisation = string_to_localisation(loc_str);
+
+            GtkTreeIter iter;
+            gtk_list_store_append(store, &iter);
+            gtk_list_store_set(store, &iter,
+                0, e.reference,
+                1, e.nom,
+                2, e.type,
+                3, e.quantite,
+                4, etat_to_string(e.etat),
+                5, localisation_to_string(e.localisation),
+                -1);
+        }
+    }
+    fclose(f);
+
+    gtk_tree_view_set_model(GTK_TREE_VIEW(treeview), GTK_TREE_MODEL(store));
+    g_object_unref(store);
+}
+
+void on_treeview1_row_activated(GtkTreeView *treeview, GtkTreePath *path,
+                               GtkTreeViewColumn *column, gpointer user_data)
+{
+    GtkTreeModel *model;
+    GtkTreeIter iter;
+
+    model = gtk_tree_view_get_model(treeview);
+
+    // Récupérer l'itérateur sur la ligne cliquée
+    if (gtk_tree_model_get_iter(model, &iter, path)) {
+        gchar *ref;
+        gtk_tree_model_get(model, &iter, 0, &ref, -1); // supposons que la colonne 0 contient la référence
+
+        // Boîte de dialogue de confirmation
+        GtkWidget *dialog;
+        GtkWindow *parent = GTK_WINDOW(user_data); // passer la fenêtre principale en user_data
+        gchar *message = g_strdup_printf("Voulez-vous vraiment supprimer l'équipement %s ?", ref);
+        dialog = gtk_message_dialog_new(parent,
+                                        GTK_DIALOG_MODAL,
+                                        GTK_MESSAGE_QUESTION,
+                                        GTK_BUTTONS_YES_NO,
+                                        "%s", message);
+        gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+        gtk_widget_destroy(dialog);
+        g_free(message);
+
+        if (response == GTK_RESPONSE_YES) {
+            // 1️⃣ Supprimer dans le TreeView
+            gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+
+            // 2️⃣ Supprimer dans le fichier equipement.txt
+            FILE *f = fopen("equipements.txt", "r");
+            FILE *temp = fopen("equipements_temp.txt", "w");
+            char line[256];
+            if (f && temp) {
+                while (fgets(line, sizeof(line), f)) {
+                    // Supposons que la ligne commence par la référence
+                    if (strncmp(line, ref, strlen(ref)) != 0) {
+                        fputs(line, temp);
+                    }
+                }
+                fclose(f);
+                fclose(temp);
+
+                // Remplacer l'ancien fichier
+                remove("equipements.txt");
+                rename("equipements_temp.txt", "equipements.txt");
+            } else {
+                g_print("Erreur lors de l'ouverture du fichier.\n");
+            }
+        }
+
+        g_free(ref);
+    }
+}
+
+
 // CALLBACKS BOUTONS - RECHERCHE
-// ============================================================================
 
 void on_buttonRech_clicked(GtkButton *button, gpointer user_data)
 {
@@ -228,9 +319,7 @@ void on_buttonRech_clicked(GtkButton *button, gpointer user_data)
     }
 }
 
-// ============================================================================
 // CALLBACKS BOUTONS - MODIFICATION
-// ============================================================================
 
 void on_buttonModif_clicked(GtkButton *button, gpointer user_data)
 {
@@ -320,19 +409,23 @@ void on_buttonModif_clicked(GtkButton *button, gpointer user_data)
     fclose(f_temp);
     
     if (trouve) {
-        remove(FICHIER_EQUIPEMENTS);
-        rename("temp_equip.txt", FICHIER_EQUIPEMENTS);
-        show_info_message("Équipement modifié avec succès");
+    remove(FICHIER_EQUIPEMENTS);
+    rename("temp_equip.txt", FICHIER_EQUIPEMENTS);
+    show_info_message("Équipement modifié avec succès");
+
+    // Rafraîchir le treeview
+    GtkWidget *treeview = lookup_widget(window, "treeview1");
+    if (treeview)
+        rafraichir_treeview(treeview);
 
     } else {
-        remove("temp_equip.txt");
-        show_error_message("Équipement non trouvé");
+    remove("temp_equip.txt");
+    show_error_message("Équipement non trouvé");
     }
+   
 }
 
-// ============================================================================
 // CALLBACKS BOUTONS - AJOUT
-// ============================================================================
 
 void on_buttonAjout_clicked(GtkButton *button, gpointer user_data)
 {
@@ -426,14 +519,18 @@ void on_buttonAjout_clicked(GtkButton *button, gpointer user_data)
     
     if (checkbutton2)
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(checkbutton2), TRUE);
+
+    GtkWidget *treeview = lookup_widget(window, "treeview1");
+    if (treeview)
+        rafraichir_treeview(treeview);
     
     show_info_message("Équipement ajouté avec succès");
 
+
+
 }
 
-// ============================================================================
 // CALLBACKS BOUTONS - SUPPRESSION
-// ============================================================================
 
 void on_buttonSupp_clicked(GtkButton *button, gpointer user_data)
 {
@@ -520,15 +617,16 @@ void on_buttonSupp_clicked(GtkButton *button, gpointer user_data)
         if (entryNom) gtk_entry_set_text(GTK_ENTRY(entryNom), "");
         if (combo_entry2) gtk_entry_set_text(GTK_ENTRY(combo_entry2), "");
         if (spinbutton2) gtk_spin_button_set_value(GTK_SPIN_BUTTON(spinbutton2), 1);
+
+        GtkWidget *treeview = lookup_widget(window, "treeview1");
+        if (treeview)
+        rafraichir_treeview(treeview);
         
         show_info_message("Équipement supprimé avec succès");
 
     }
 }
 
-// ============================================================================
-// AUTRES CALLBACKS
-// ============================================================================
 
 void on_radiobutton3_toggled(GtkToggleButton *togglebutton, gpointer user_data)
 {
@@ -820,8 +918,104 @@ void on_buttonCal_clicked(GtkButton *button, gpointer user_data)
 
 void on_buttonAff_clicked(GtkButton *button, gpointer user_data)
 {
-    GtkWidget *ctree1 = lookup_widget(GTK_WIDGET(button), "ctree1");
-    afficherEquipementsCTree(ctree1);
+    GtkWidget *window = lookup_widget(GTK_WIDGET(button), "yh_window");
+    GtkWidget *treeview = lookup_widget(window, "treeview1");
+
+    if (!treeview) return;
+
+    // Définir les colonnes si elles n'existent pas encore
+    if (gtk_tree_view_get_model(GTK_TREE_VIEW(treeview)) == NULL) {
+        GtkCellRenderer *renderer;
+        GtkTreeViewColumn *column;
+
+        // Référence
+        renderer = gtk_cell_renderer_text_new();
+        column = gtk_tree_view_column_new_with_attributes("Référence", renderer, "text", 0, NULL);
+        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
+
+        // Nom
+        renderer = gtk_cell_renderer_text_new();
+        column = gtk_tree_view_column_new_with_attributes("Nom", renderer, "text", 1, NULL);
+        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
+
+        // Type
+        renderer = gtk_cell_renderer_text_new();
+        column = gtk_tree_view_column_new_with_attributes("Type", renderer, "text", 2, NULL);
+        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
+
+        // Quantité
+        renderer = gtk_cell_renderer_text_new();
+        column = gtk_tree_view_column_new_with_attributes("Quantité", renderer, "text", 3, NULL);
+        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
+
+        // État
+        renderer = gtk_cell_renderer_text_new();
+        column = gtk_tree_view_column_new_with_attributes("État", renderer, "text", 4, NULL);
+        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
+
+        // Localisation
+        renderer = gtk_cell_renderer_text_new();
+        column = gtk_tree_view_column_new_with_attributes("Localisation", renderer, "text", 5, NULL);
+        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
+    }
+
+    // Créer le modèle
+    GtkListStore *store = gtk_list_store_new(6,
+                                             G_TYPE_STRING, // Réf
+                                             G_TYPE_STRING, // Nom
+                                             G_TYPE_STRING, // Type
+                                             G_TYPE_INT,    // Quantité
+                                             G_TYPE_STRING, // État
+                                             G_TYPE_STRING  // Localisation
+    );
+
+    // Lire le fichier
+    FILE *f = fopen(FICHIER_EQUIPEMENTS, "r");
+    if (!f) {
+        show_error_message("Impossible d'ouvrir le fichier des équipements");
+        return;
+    }
+
+    char ligne[512];
+    while (fgets(ligne, sizeof(ligne), f)) {
+        Equipement e;
+        char etat_str[50], loc_str[50];
+
+        if (sscanf(ligne, "%[^,],%[^,],%[^,],%d,%[^,],%s",
+                   e.reference, e.nom, e.type, &e.quantite,
+                   etat_str, loc_str) == 6) {
+
+            e.etat = string_to_etat(etat_str);
+            e.localisation = string_to_localisation(loc_str);
+
+            GtkTreeIter iter;
+            gtk_list_store_append(store, &iter);
+            gtk_list_store_set(store, &iter,
+                               0, e.reference,
+                               1, e.nom,
+                               2, e.type,
+                               3, e.quantite,
+                               4, etat_to_string(e.etat),
+                               5, localisation_to_string(e.localisation),
+                               -1);
+        }
+    }
+    fclose(f);
+
+    gtk_tree_view_set_model(GTK_TREE_VIEW(treeview), GTK_TREE_MODEL(store));
+    g_object_unref(store);
+
+    // Au lieu de ça :
+// GtkWidget *treeview = lookup_widget(GTK_WIDGET(user_data), "treeview1");
+
+// Utilise la variable déjà existante :
+    if (treeview != NULL) {
+        g_signal_connect(treeview, "row-activated",
+                     G_CALLBACK(on_treeview1_row_activated),
+                     NULL);
 }
+
+}
+
 
 

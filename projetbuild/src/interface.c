@@ -93,13 +93,7 @@ create_yh_window (void)
   GtkWidget *alignment8;
   GtkWidget *vbox5;
   GtkWidget *scrolledwindow1;
-  GtkWidget *ctree1;
-  GtkWidget *label53;
-  GtkWidget *label54;
-  GtkWidget *label49;
-  GtkWidget *label50;
-  GtkWidget *label51;
-  GtkWidget *label52;
+  GtkWidget *treeview1;
   GtkWidget *statusbar3;
   GtkWidget *label24;
   GtkWidget *label1;
@@ -458,46 +452,9 @@ create_yh_window (void)
   gtk_widget_show (scrolledwindow1);
   gtk_box_pack_start (GTK_BOX (vbox5), scrolledwindow1, TRUE, TRUE, 0);
 
-  ctree1 = gtk_ctree_new (6, 0);
-  gtk_widget_show (ctree1);
-  gtk_container_add (GTK_CONTAINER (scrolledwindow1), ctree1);
-  gtk_clist_set_column_width (GTK_CLIST (ctree1), 0, 181);
-  gtk_clist_set_column_width (GTK_CLIST (ctree1), 1, 233);
-  gtk_clist_set_column_width (GTK_CLIST (ctree1), 2, 249);
-  gtk_clist_set_column_width (GTK_CLIST (ctree1), 3, 244);
-  gtk_clist_set_column_width (GTK_CLIST (ctree1), 4, 225);
-  gtk_clist_set_column_width (GTK_CLIST (ctree1), 5, 80);
-  gtk_clist_column_titles_show (GTK_CLIST (ctree1));
-
-  label53 = gtk_label_new (_("<b><span foreground=\"black\"  >R\303\251f\303\251rence</span></b>\n"));
-  gtk_widget_show (label53);
-  gtk_clist_set_column_widget (GTK_CLIST (ctree1), 0, label53);
-  gtk_label_set_use_markup (GTK_LABEL (label53), TRUE);
-
-  label54 = gtk_label_new (_("<b><span foreground=\"black\"  >Nom</span></b>\n"));
-  gtk_widget_show (label54);
-  gtk_clist_set_column_widget (GTK_CLIST (ctree1), 1, label54);
-  gtk_label_set_use_markup (GTK_LABEL (label54), TRUE);
-
-  label49 = gtk_label_new (_("<b><span foreground=\"black\"  >Type</span></b>\n"));
-  gtk_widget_show (label49);
-  gtk_clist_set_column_widget (GTK_CLIST (ctree1), 2, label49);
-  gtk_label_set_use_markup (GTK_LABEL (label49), TRUE);
-
-  label50 = gtk_label_new (_("<b><span foreground=\"black\"  >Quantit\303\251</span></b>\n"));
-  gtk_widget_show (label50);
-  gtk_clist_set_column_widget (GTK_CLIST (ctree1), 3, label50);
-  gtk_label_set_use_markup (GTK_LABEL (label50), TRUE);
-
-  label51 = gtk_label_new (_("<b><span foreground=\"black\"  >\303\211tat</span></b>\n"));
-  gtk_widget_show (label51);
-  gtk_clist_set_column_widget (GTK_CLIST (ctree1), 4, label51);
-  gtk_label_set_use_markup (GTK_LABEL (label51), TRUE);
-
-  label52 = gtk_label_new (_("<b><span foreground=\"black\"  >Localisation</span></b>"));
-  gtk_widget_show (label52);
-  gtk_clist_set_column_widget (GTK_CLIST (ctree1), 5, label52);
-  gtk_label_set_use_markup (GTK_LABEL (label52), TRUE);
+  treeview1 = gtk_tree_view_new ();
+  gtk_widget_show (treeview1);
+  gtk_container_add (GTK_CONTAINER (scrolledwindow1), treeview1);
 
   statusbar3 = gtk_statusbar_new ();
   gtk_widget_show (statusbar3);
@@ -508,7 +465,7 @@ create_yh_window (void)
   gtk_frame_set_label_widget (GTK_FRAME (frame2), label24);
   gtk_label_set_use_markup (GTK_LABEL (label24), TRUE);
 
-  label1 = gtk_label_new (_("<b><span foreground=\"blue\" size=\"13000\">Gestion Des \303\211quipements</span></b>\n"));
+  label1 = gtk_label_new (_("<b><span foreground=\"dark blue\" size=\"13000\">Gestion Des \303\211quipements</span></b>\n"));
   gtk_widget_show (label1);
   gtk_notebook_set_tab_label (GTK_NOTEBOOK (notebook1), gtk_notebook_get_nth_page (GTK_NOTEBOOK (notebook1), 0), label1);
   gtk_widget_set_size_request (label1, 605, 27);
@@ -626,7 +583,7 @@ create_yh_window (void)
   gtk_widget_show (image7);
   gtk_box_pack_start (GTK_BOX (hbox5), image7, FALSE, FALSE, 0);
 
-  label18 = gtk_label_new_with_mnemonic (_("   <b><span foreground=\"green\"  >R\303\251server</span></b>\n"));
+  label18 = gtk_label_new_with_mnemonic (_("   <b><span foreground=\"black\"  >R\303\251server</span></b>\n"));
   gtk_widget_show (label18);
   gtk_box_pack_start (GTK_BOX (hbox5), label18, FALSE, FALSE, 0);
   gtk_label_set_use_markup (GTK_LABEL (label18), TRUE);
@@ -648,7 +605,7 @@ create_yh_window (void)
   gtk_widget_show (image10);
   gtk_box_pack_start (GTK_BOX (hbox8), image10, FALSE, FALSE, 0);
 
-  label21 = gtk_label_new_with_mnemonic (_("   <b><span foreground=\"red\"  >Annuler</span></b>\n"));
+  label21 = gtk_label_new_with_mnemonic (_("   <b><span foreground=\"black\"  >Annuler</span></b>\n"));
   gtk_widget_show (label21);
   gtk_box_pack_start (GTK_BOX (hbox8), label21, FALSE, FALSE, 0);
   gtk_label_set_use_markup (GTK_LABEL (label21), TRUE);
@@ -664,23 +621,21 @@ create_yh_window (void)
   combo3_items = g_list_append (combo3_items, (gpointer) _("Haltere"));
   combo3_items = g_list_append (combo3_items, (gpointer) _("Banc"));
   combo3_items = g_list_append (combo3_items, (gpointer) _("Cordeasauter"));
-  combo3_items = g_list_append (combo3_items, (gpointer) _(" Benchpress"));
   combo3_items = g_list_append (combo3_items, (gpointer) _("Veloelliptique"));
-  combo3_items = g_list_append (combo3_items, (gpointer) _("Sacbox"));
+  combo3_items = g_list_append (combo3_items, (gpointer) _("Sachbox"));
   combo3_items = g_list_append (combo3_items, (gpointer) _("Ballon"));
   gtk_combo_set_popdown_strings (GTK_COMBO (combo3), combo3_items);
   g_list_free (combo3_items);
 
   combo_entry3 = GTK_COMBO (combo3)->entry;
   gtk_widget_show (combo_entry3);
-  gtk_widget_set_size_request (combo_entry3, 600, -1);
   gtk_entry_set_invisible_char (GTK_ENTRY (combo_entry3), 8226);
 
   labelAffich = gtk_label_new (_("Equipement"));
   gtk_widget_show (labelAffich);
   gtk_box_pack_start (GTK_BOX (vbox2), labelAffich, FALSE, FALSE, 0);
 
-  label2 = gtk_label_new (_("<b><span foreground=\"blue\" size=\"13000\">R\303\251servation D'un \303\211quipement</span></b>"));
+  label2 = gtk_label_new (_("<b><span foreground=\"dark blue\" size=\"13000\">R\303\251servation D'un \303\211quipement</span></b>"));
   gtk_widget_show (label2);
   gtk_notebook_set_tab_label (GTK_NOTEBOOK (notebook1), gtk_notebook_get_nth_page (GTK_NOTEBOOK (notebook1), 1), label2);
   gtk_widget_set_size_request (label2, 605, -1);
@@ -756,7 +711,7 @@ create_yh_window (void)
   gtk_widget_set_size_request (labelCPA, 200, 30);
   gtk_label_set_use_markup (GTK_LABEL (labelCPA), TRUE);
 
-  label3 = gtk_label_new (_("<b><span foreground=\"blue\" size=\"13000\">Statistiques</span></b>\n"));
+  label3 = gtk_label_new (_("<b><span foreground=\"dark blue\" size=\"13000\">Statistiques</span></b>\n"));
   gtk_widget_show (label3);
   gtk_notebook_set_tab_label (GTK_NOTEBOOK (notebook1), gtk_notebook_get_nth_page (GTK_NOTEBOOK (notebook1), 2), label3);
   gtk_widget_set_size_request (label3, 605, -1);
@@ -870,13 +825,7 @@ create_yh_window (void)
   GLADE_HOOKUP_OBJECT (yh_window, alignment8, "alignment8");
   GLADE_HOOKUP_OBJECT (yh_window, vbox5, "vbox5");
   GLADE_HOOKUP_OBJECT (yh_window, scrolledwindow1, "scrolledwindow1");
-  GLADE_HOOKUP_OBJECT (yh_window, ctree1, "ctree1");
-  GLADE_HOOKUP_OBJECT (yh_window, label53, "label53");
-  GLADE_HOOKUP_OBJECT (yh_window, label54, "label54");
-  GLADE_HOOKUP_OBJECT (yh_window, label49, "label49");
-  GLADE_HOOKUP_OBJECT (yh_window, label50, "label50");
-  GLADE_HOOKUP_OBJECT (yh_window, label51, "label51");
-  GLADE_HOOKUP_OBJECT (yh_window, label52, "label52");
+  GLADE_HOOKUP_OBJECT (yh_window, treeview1, "treeview1");
   GLADE_HOOKUP_OBJECT (yh_window, statusbar3, "statusbar3");
   GLADE_HOOKUP_OBJECT (yh_window, label24, "label24");
   GLADE_HOOKUP_OBJECT (yh_window, label1, "label1");

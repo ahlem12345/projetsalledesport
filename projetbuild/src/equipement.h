@@ -44,7 +44,6 @@ int ajouterEquipement(char *filename, Equipement e);
 int rechercherEquipement(char *filename, char *reference);
 int modifierEquipement(char *filename, char *reference, Equipement nouv);
 int supprimerEquipement(char *filename, char *reference);
-void afficherEquipementsCTree(GtkWidget *ctree);
 void afficherEquipements(char *filename);
 
 
