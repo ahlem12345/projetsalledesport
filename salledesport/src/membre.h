@@ -52,8 +52,8 @@ int supprimer_membre(const char *id_recherche, const char *filename);
 int charger_membres(GtkListStore *store, const char *filename);
 int calculer_statistiques(const char *filename, int *total, int *actifs, int *inactifs, float *pourcentage);
 float calculer_imc(const char *id_recherche, const char *filename);
-
 int charger_abonnements(GtkListStore *store, const char *filename);
+int ajouter_demande_coach(demande_coach d, const char *filename);
 
 int supprimer_abonnement(const char *type, const char *filename);
 
@@ -62,7 +62,6 @@ int rechercher_abonnement(GtkWidget *treeview, const char *type_recherche);
 void lire_date_selectionnee(GtkWidget *calendar, int *j, int *m, int *a);
 void get_type_seance(GtkWidget *c1, GtkWidget *c2, char *out);
 void get_materiel(GtkWidget *r2, GtkWidget *r3, char *out);
-
 
 #endif
 

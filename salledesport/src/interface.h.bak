@@ -4,3 +4,6 @@
 
 GtkWidget* create_window_gestion_des_membres (void);
 GtkWidget* create_colorselectiondialog1 (void);
+GtkWidget* create_page_d_acceui_admin_membre (void);
+GtkWidget* create_admin_choix (void);
+GtkWidget* create_window1 (void);

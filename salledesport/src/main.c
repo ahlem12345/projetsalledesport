@@ -11,12 +11,16 @@
 
 #include "interface.h"
 #include "support.h"
+#include "membre.h"
+
 
 int
 main (int argc, char *argv[])
 {
+    
   GtkWidget *window_gestion_des_membres;
-  GtkWidget *colorselectiondialog1;
+  // GtkWidget *colorselectiondialog1;
+  GtkWidget *page_d_acceui_admin_membre;
 
 #ifdef ENABLE_NLS
   bindtextdomain (GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
@@ -27,17 +31,21 @@ main (int argc, char *argv[])
   gtk_set_locale ();
   gtk_init (&argc, &argv);
 
-  add_pixmap_directory (PACKAGE_DATA_DIR "/" PACKAGE "/pixmaps");
+  add_pixmap_directory ("pixmaps");
 
   /*
    * The following code was added by Glade to create one of each component
    * (except popup menus), just so that you see something after building
    * the project. Delete any components that you don't want shown initially.
    */
+  //colorselectiondialog1 = create_colorselectiondialog1 ();
+  //gtk_widget_show (colorselectiondialog1);
   window_gestion_des_membres = create_window_gestion_des_membres ();
   gtk_widget_show (window_gestion_des_membres);
-  colorselectiondialog1 = create_colorselectiondialog1 ();
-  gtk_widget_show (colorselectiondialog1);
+  page_d_acceui_admin_membre = create_page_d_acceui_admin_membre();
+  gtk_widget_show (page_d_acceui_admin_membre);
+  
+
 
   gtk_main ();
   return 0;

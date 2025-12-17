@@ -19,6 +19,7 @@ void on_button_supprimer_clicked(GtkWidget *objet_graphique, gpointer user_data)
 void on_button_annuler_demande_clicked(GtkWidget *objet_graphique, gpointer user_data);
 void on_button_envoi_demande_clicked(GtkWidget *objet_graphique, gpointer user_data);
 void on_button_imc_clicked(GtkWidget *objet_graphique, gpointer user_data);
+void on_button_charger_combo_clicked(GtkWidget *objet_graphique, gpointer user_data);
 
 /* --- CALENDAR CALLBACKS --- */
 void on_calendar_date_naissance_modif_day_selected(GtkWidget *objet_graphique, gpointer user_data);
@@ -52,3 +53,49 @@ on_button_reset_clicked (GtkWidget *objet_graphique, gpointer user_data);
 
 void
 on_button_chercher_abon_clicked (GtkWidget *objet_graphique, gpointer user_data);
+
+void
+on_button35_clicked                    (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_button36_clicked                    (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_curve1_curve_type_changed           (GtkCurve        *curve,
+                                        gpointer         user_data);
+
+void
+on_button_membre_log_clicked           (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_button_admin_log_clicked            (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_button_about_us_clicked             (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_button_gestion_cours_clicked        (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_button_gestion_membre_clicked       (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_button_gestion_equip_clicked        (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_button_gestion_entraineur_clicked   (GtkButton       *button,
+                                        gpointer         user_data);
+
+void
+on_button_gestion___venement_clicked   (GtkButton       *button,
+                                        gpointer         user_data);
+
+

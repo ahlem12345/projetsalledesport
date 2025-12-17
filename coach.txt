@@ -1,0 +1,2 @@
+messi;lionel;10;Préparation Physique;8;non
+eeee;ronaldo;7;yoga;1;non

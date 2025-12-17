@@ -1,0 +1,5 @@
+Salle A;100;disponible
+Salle B;80;disponible  
+Salle C;50;indisponible
+Salle D;120;disponible
+Salle E;60;disponible

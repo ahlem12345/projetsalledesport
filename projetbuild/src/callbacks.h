@@ -1,6 +1,10 @@
 #include <gtk/gtk.h>
 
 
+void rafraichir_treeview(GtkWidget *treeview);
+
+void on_treeview1_row_activated(GtkTreeView *treeview,GtkTreePath *path,GtkTreeViewColumn *column,
+gpointer user_data);
 
 
 

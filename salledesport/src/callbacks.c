@@ -611,39 +611,50 @@ void on_radiobutton3_toggled(GtkWidget *objet_graphique, gpointer user_data)
         g_print("Avec matériel\n");
 }
 
+
+
+
+
 void on_button_envoi_demande_clicked(GtkWidget *objet_graphique, gpointer user_data)
 {
     demande_coach d;
 
-    GtkWidget *entry_id = lookup_widget(objet_graphique, "entry_mem_demande");
-    GtkWidget *entry_h = lookup_widget(objet_graphique, "entry_heure");
+    GtkWidget *entry_id      = lookup_widget(objet_graphique, "entry_mem_demande");
+    GtkWidget *entry_h       = lookup_widget(objet_graphique, "entry_heure");
     GtkWidget *entry_comment = lookup_widget(objet_graphique, "entry_comment");
 
-    GtkWidget *combo_type = lookup_widget(objet_graphique, "combobox_type_demande");
+    GtkWidget *combo_type  = lookup_widget(objet_graphique, "combobox_type_demande");
     GtkWidget *combo_coach = lookup_widget(objet_graphique, "combobox_coach");
-    GtkWidget *calendar = lookup_widget(objet_graphique, "calendar_date_sport");
+    GtkWidget *calendar    = lookup_widget(objet_graphique, "calendar_date_sport");
 
     GtkWidget *cb_online = lookup_widget(objet_graphique, "checkbutton1");
-    GtkWidget *cb_salle = lookup_widget(objet_graphique, "checkbutton2");
+    GtkWidget *cb_salle  = lookup_widget(objet_graphique, "checkbutton2");
 
     GtkWidget *rb_avec = lookup_widget(objet_graphique, "radiobutton2");
     GtkWidget *rb_sans = lookup_widget(objet_graphique, "radiobutton3");
 
     strcpy(d.nom_membre, gtk_entry_get_text(GTK_ENTRY(entry_id)));
     strcpy(d.heure, gtk_entry_get_text(GTK_ENTRY(entry_h)));
-
     strcpy(d.commentaire, gtk_entry_get_text(GTK_ENTRY(entry_comment)));
 
-    strcpy(d.type_entrainement,
-           gtk_combo_box_get_active_text(GTK_COMBO_BOX(combo_type)));
+    // Type of training
+    strcpy(d.type_entrainement, gtk_combo_box_get_active_text(GTK_COMBO_BOX(combo_type)));
 
-    strcpy(d.coach_choisi,
-           gtk_combo_box_get_active_text(GTK_COMBO_BOX(combo_coach)));
+    // Coach selected
+    GtkTreeModel *model = gtk_combo_box_get_model(GTK_COMBO_BOX(combo_coach));
+    GtkTreeIter iter;
+    if (gtk_combo_box_get_active_iter(GTK_COMBO_BOX(combo_coach), &iter)) {
+        gchar *coach_name;
+        gtk_tree_model_get(model, &iter, 0, &coach_name, -1);
+        strcpy(d.coach_choisi, coach_name);
+        g_free(coach_name);
+    } else {
+        g_print("ERROR: No coach selected!\n");
+        return;
+    }
 
-    lire_date_selectionnee(calendar,
-                           &d.jour_souhaite,
-                           &d.mois_souhaite,
-                           &d.annee_souhaitee);
+    // Date
+    lire_date_selectionnee(calendar, &d.jour_souhaite, &d.mois_souhaite, &d.annee_souhaitee);
 
     get_type_seance(cb_online, cb_salle, d.type_seance);
     get_materiel(rb_avec, rb_sans, d.materiel);
@@ -653,6 +664,7 @@ void on_button_envoi_demande_clicked(GtkWidget *objet_graphique, gpointer user_d
     else
         g_print("ERREUR: impossible d'enregistrer la demande\n");
 }
+
 
 void on_button_annuler_demande_clicked(GtkWidget *objet_graphique, gpointer user_data)
 {
@@ -665,6 +677,128 @@ void on_button_annuler_demande_clicked(GtkWidget *objet_graphique, gpointer user
     gtk_entry_set_text(GTK_ENTRY(entry_comment), "");
 
     g_print("Formulaire réinitialisé\n");
+}
+
+void on_button_charger_combo_clicked(GtkWidget *objet_graphique, gpointer user_data)
+{
+    GtkWidget *combo_coach = lookup_widget(objet_graphique, "combobox_coach");
+    if (!combo_coach) return;
+
+    // Create a list store with one column for coach names
+    GtkListStore *store = GTK_LIST_STORE(gtk_combo_box_get_model(GTK_COMBO_BOX(combo_coach)));
+    if (!store) {
+        store = gtk_list_store_new(1, G_TYPE_STRING);
+        gtk_combo_box_set_model(GTK_COMBO_BOX(combo_coach), GTK_TREE_MODEL(store));
+        g_object_unref(store);
+
+        // Add a renderer for text
+        GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
+        gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(combo_coach), renderer, TRUE);
+        gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(combo_coach), renderer, "text", 0, NULL);
+    }
+
+    // Clear previous items
+    GtkTreeIter iter;
+    gtk_list_store_clear(store);
+
+    // Open the file containing coach names
+    FILE *f = fopen("coachs.txt", "r");
+    if (!f) {
+        g_print("ERROR: coachs.txt not found\n");
+        return;
+    }
+
+    char line[128];
+    while (fgets(line, sizeof(line), f)) {
+        // Remove newline
+        line[strcspn(line, "\n")] = 0;
+
+        gtk_list_store_append(store, &iter);
+        gtk_list_store_set(store, &iter, 0, line, -1);
+    }
+
+    fclose(f);
+}
+
+
+void on_buttonfiltrer_clicked(GtkWidget *objet_graphique, gpointer user_data)
+{
+    GtkWidget *treeview = lookup_widget(objet_graphique, "treeview3");
+    if (!treeview) return;
+
+    GtkListStore *store = GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(treeview)));
+
+    if (!store) {
+        store = gtk_list_store_new(5,
+            G_TYPE_STRING, // Nom membre
+            G_TYPE_STRING, // Coach choisi
+            G_TYPE_STRING, // Heure
+            G_TYPE_STRING, // Date
+            G_TYPE_STRING  // Statut
+        );
+        gtk_tree_view_set_model(GTK_TREE_VIEW(treeview), GTK_TREE_MODEL(store));
+
+        const char *titles[5] = {"Nom", "Coach", "Heure", "Date", "Statut"};
+        for (int i = 0; i < 5; i++) {
+            GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
+            GtkTreeViewColumn *col = gtk_tree_view_column_new_with_attributes(titles[i], renderer, "text", i, NULL);
+            gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), col);
+        }
+        g_object_unref(store);
+        store = GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(treeview)));
+    }
+
+    gtk_list_store_clear(store);
+
+    FILE *f_dem = fopen("demande_coach.txt", "r");
+    if (!f_dem) {
+        g_print("Erreur: fichier demande_coach.txt introuvable\n");
+        return;
+    }
+
+    char ligne[512];
+    GtkTreeIter iter;
+
+    while (fgets(ligne, sizeof(ligne), f_dem)) {
+        char nom[64], type[64], coach[64], heure[16], type_seance[32], materiel[8], commentaire[256];
+        int jour, mois, annee;
+
+        // Lire la ligne selon ton format : nom;type;coach;heure;jour;mois;annee;type_seance;materiel;commentaire
+        sscanf(ligne, "%63[^;];%63[^;];%63[^;];%15[^;];%d;%d;%d;%31[^;];%7[^;];%255[^\n]",
+               nom, type, coach, heure, &jour, &mois, &annee, type_seance, materiel, commentaire);
+
+        // Vérifier disponibilité
+        int dispo = 1; // disponible par défaut
+        FILE *f_disp = fopen("dispcoach.txt", "r");
+        if (f_disp) {
+            char disp_line[128], coach_disp[64], heure_disp[16];
+            while (fgets(disp_line, sizeof(disp_line), f_disp)) {
+                sscanf(disp_line, "%63[^;];%15[^\n]", coach_disp, heure_disp);
+                if (strcmp(coach_disp, coach) == 0 && strcmp(heure_disp, heure) == 0) {
+                    dispo = 0; // coach occupé
+                    break;
+                }
+            }
+            fclose(f_disp);
+        }
+
+        char date_str[16];
+        sprintf(date_str, "%02d/%02d/%04d", jour, mois, annee);
+
+        char statut[16];
+        strcpy(statut, dispo ? "Accepté" : "Refusé");
+
+        gtk_list_store_append(store, &iter);
+        gtk_list_store_set(store, &iter,
+                           0, nom,
+                           1, coach,
+                           2, heure,
+                           3, date_str,
+                           4, statut,
+                           -1);
+    }
+
+    fclose(f_dem);
 }
 
 
@@ -688,13 +822,103 @@ void on_calendar_inscrip_modif_day_selected(GtkWidget *objet_graphique, gpointer
 
 
 
-void on_buttonfiltrer_clicked (GtkWidget *objet_graphique, gpointer user_data) {}
 
 
 
 
 
 
+
+
+
+
+
+void
+on_button35_clicked                    (GtkButton       *button,
+                                        gpointer         user_data)
+{
+
+}
+
+
+void
+on_button36_clicked                    (GtkButton       *button,
+                                        gpointer         user_data)
+{
+
+}
+
+
+void
+on_curve1_curve_type_changed           (GtkCurve        *curve,
+                                        gpointer         user_data)
+{
+
+}
+
+
+void
+on_button_membre_log_clicked           (GtkButton       *button,
+                                        gpointer         user_data)
+{
+
+}
+
+
+void
+on_button_admin_log_clicked            (GtkButton       *button,
+                                        gpointer         user_data)
+{
+
+}
+
+
+void
+on_button_about_us_clicked             (GtkButton       *button,
+                                        gpointer         user_data)
+{
+
+}
+
+
+void
+on_button_gestion_cours_clicked        (GtkButton       *button,
+                                        gpointer         user_data)
+{
+
+}
+
+
+void
+on_button_gestion_membre_clicked       (GtkButton       *button,
+                                        gpointer         user_data)
+{
+
+}
+
+
+void
+on_button_gestion_equip_clicked        (GtkButton       *button,
+                                        gpointer         user_data)
+{
+
+}
+
+
+void
+on_button_gestion_entraineur_clicked   (GtkButton       *button,
+                                        gpointer         user_data)
+{
+
+}
+
+
+void
+on_button_gestion___venement_clicked   (GtkButton       *button,
+                                        gpointer         user_data)
+{
+
+}
 
 
 

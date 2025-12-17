@@ -128,36 +128,51 @@ int charger_membres(GtkListStore *store, const char *filename)
 /* ----------------- Statistiques ----------------- */
 int calculer_statistiques(const char *filename, int *total, int *actifs, int *inactifs, float *pourcentage)
 {
-    FILE *f=fopen(filename,"r");
-    if(!f) return 0;
+    FILE *f = fopen(filename, "r");
+    if (!f) return 0;
 
-    char line[512]; *total=0; *actifs=0;
-    time_t t=time(NULL); struct tm today=*localtime(&t);
+    char line[512];
+    *total = 0;
+    *actifs = 0;
 
-    while(fgets(line,sizeof(line),f)){
-        line[strcspn(line,"\n")]=0;
-        char *fields[12]; int i=0;
-        char *token=strtok(line,";");
-        while(token && i<12){fields[i++]=token; token=strtok(NULL,";");}
-        if(i<12) continue;
+    time_t now = time(NULL);
+    struct tm today = *localtime(&now);
+
+    while (fgets(line, sizeof(line), f)) {
+        line[strcspn(line, "\n")] = 0;
+
+        char *fields[12];
+        int i = 0;
+        char *token = strtok(line, ";");
+        while (token && i < 12) { fields[i++] = token; token = strtok(NULL, ";"); }
+        if (i < 12) continue;
 
         (*total)++;
-        int j_inscr,m_inscr,a_inscr,duree;
-        sscanf(fields[6],"%d/%d/%d",&j_inscr,&m_inscr,&a_inscr);
-        duree=atoi(fields[9]);
 
-        struct tm expiry={0};
-        expiry.tm_mday=j_inscr; expiry.tm_mon=m_inscr-1+duree; expiry.tm_year=a_inscr-1900;
-        mktime(&expiry);
+        int j_inscr, m_inscr, a_inscr, duree;
+        if (sscanf(fields[6], "%d/%d/%d", &j_inscr, &m_inscr, &a_inscr) != 3) continue;
+        duree = atoi(fields[9]); // durée en mois
 
-        if(difftime(mktime(&expiry),t)>=0) (*actifs)++;
+        // Créer la date d'expiration
+        struct tm expiry = {0};
+        expiry.tm_mday = j_inscr;
+        expiry.tm_mon = m_inscr - 1 + duree; // ajouter les mois
+        expiry.tm_year = a_inscr - 1900;
+
+        // mktime va normaliser la date automatiquement
+        time_t expiry_time = mktime(&expiry);
+
+        if (difftime(expiry_time, now) >= 0)
+            (*actifs)++;
     }
 
     fclose(f);
-    *inactifs=*total - *actifs;
-    *pourcentage=(*total>0)?((float)(*actifs)/(*total))*100.0:0.0;
+    *inactifs = *total - *actifs;
+    *pourcentage = (*total > 0) ? ((float)(*actifs) / (*total)) * 100.0 : 0.0;
+
     return 1;
 }
+
 
 /* ----------------- IMC ----------------- */
 float calculer_imc(const char *id_recherche, const char *filename)
@@ -353,6 +368,10 @@ void get_materiel(GtkWidget *r2, GtkWidget *r3, char *out)
     else
         strcpy(out, "N/S");
 }
+
+
+
+
 
 
 
