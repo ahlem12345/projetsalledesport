@@ -1,4 +1,3 @@
 Standard;Accès salle muscu-cardio;Non;1 mois;100 TND 
 réduit;Accès réduit-moins d’équipements;Non;1 mois;60 TND 
 trimestiel 3 mois;Salle + cours collectifs;Non;Coaching en extra;3 mois;390TND
-Multiservices;Gym + Aqua-fitness + Piscine;Oui;Oui possible;1 mois;195TND
