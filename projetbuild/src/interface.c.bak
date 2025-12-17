@@ -93,13 +93,7 @@ create_yh_window (void)
   GtkWidget *alignment8;
   GtkWidget *vbox5;
   GtkWidget *scrolledwindow1;
-  GtkWidget *ctree1;
-  GtkWidget *label53;
-  GtkWidget *label54;
-  GtkWidget *label49;
-  GtkWidget *label50;
-  GtkWidget *label51;
-  GtkWidget *label52;
+  GtkWidget *treeview1;
   GtkWidget *statusbar3;
   GtkWidget *label24;
   GtkWidget *label1;
@@ -140,19 +134,17 @@ create_yh_window (void)
   GtkWidget *fixed2;
   GtkWidget *image17;
   GtkWidget *label14;
-  GtkWidget *labelTUE;
   GtkWidget *buttonCal;
   GtkWidget *alignment1;
   GtkWidget *hbox1;
   GtkWidget *image5;
   GtkWidget *label12;
-  GtkWidget *labelEPR;
   GtkWidget *labelEPR1;
   GtkWidget *labelEPM1;
-  GtkWidget *labelCPA;
-  GtkWidget *labelEPM;
   GtkWidget *labelCPA1;
-  GtkWidget *labelTUE1;
+  GtkWidget *labelEPM;
+  GtkWidget *labelEPR;
+  GtkWidget *labelCPA;
   GtkWidget *label3;
 
   yh_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
@@ -460,46 +452,9 @@ create_yh_window (void)
   gtk_widget_show (scrolledwindow1);
   gtk_box_pack_start (GTK_BOX (vbox5), scrolledwindow1, TRUE, TRUE, 0);
 
-  ctree1 = gtk_ctree_new (6, 0);
-  gtk_widget_show (ctree1);
-  gtk_container_add (GTK_CONTAINER (scrolledwindow1), ctree1);
-  gtk_clist_set_column_width (GTK_CLIST (ctree1), 0, 181);
-  gtk_clist_set_column_width (GTK_CLIST (ctree1), 1, 233);
-  gtk_clist_set_column_width (GTK_CLIST (ctree1), 2, 249);
-  gtk_clist_set_column_width (GTK_CLIST (ctree1), 3, 244);
-  gtk_clist_set_column_width (GTK_CLIST (ctree1), 4, 225);
-  gtk_clist_set_column_width (GTK_CLIST (ctree1), 5, 80);
-  gtk_clist_column_titles_show (GTK_CLIST (ctree1));
-
-  label53 = gtk_label_new (_("<b><span foreground=\"black\"  >R\303\251f\303\251rence</span></b>\n"));
-  gtk_widget_show (label53);
-  gtk_clist_set_column_widget (GTK_CLIST (ctree1), 0, label53);
-  gtk_label_set_use_markup (GTK_LABEL (label53), TRUE);
-
-  label54 = gtk_label_new (_("<b><span foreground=\"black\"  >Nom</span></b>\n"));
-  gtk_widget_show (label54);
-  gtk_clist_set_column_widget (GTK_CLIST (ctree1), 1, label54);
-  gtk_label_set_use_markup (GTK_LABEL (label54), TRUE);
-
-  label49 = gtk_label_new (_("<b><span foreground=\"black\"  >Type</span></b>\n"));
-  gtk_widget_show (label49);
-  gtk_clist_set_column_widget (GTK_CLIST (ctree1), 2, label49);
-  gtk_label_set_use_markup (GTK_LABEL (label49), TRUE);
-
-  label50 = gtk_label_new (_("<b><span foreground=\"black\"  >Quantit\303\251</span></b>\n"));
-  gtk_widget_show (label50);
-  gtk_clist_set_column_widget (GTK_CLIST (ctree1), 3, label50);
-  gtk_label_set_use_markup (GTK_LABEL (label50), TRUE);
-
-  label51 = gtk_label_new (_("<b><span foreground=\"black\"  >\303\211tat</span></b>\n"));
-  gtk_widget_show (label51);
-  gtk_clist_set_column_widget (GTK_CLIST (ctree1), 4, label51);
-  gtk_label_set_use_markup (GTK_LABEL (label51), TRUE);
-
-  label52 = gtk_label_new (_("<b><span foreground=\"black\"  >Localisation</span></b>"));
-  gtk_widget_show (label52);
-  gtk_clist_set_column_widget (GTK_CLIST (ctree1), 5, label52);
-  gtk_label_set_use_markup (GTK_LABEL (label52), TRUE);
+  treeview1 = gtk_tree_view_new ();
+  gtk_widget_show (treeview1);
+  gtk_container_add (GTK_CONTAINER (scrolledwindow1), treeview1);
 
   statusbar3 = gtk_statusbar_new ();
   gtk_widget_show (statusbar3);
@@ -665,17 +620,15 @@ create_yh_window (void)
   combo3_items = g_list_append (combo3_items, (gpointer) _("Tapis"));
   combo3_items = g_list_append (combo3_items, (gpointer) _("Haltere"));
   combo3_items = g_list_append (combo3_items, (gpointer) _("Banc"));
-  combo3_items = g_list_append (combo3_items, (gpointer) _("Corde_a_sauter"));
-  combo3_items = g_list_append (combo3_items, (gpointer) _(" Bench_press"));
-  combo3_items = g_list_append (combo3_items, (gpointer) _("Velo_elliptique"));
-  combo3_items = g_list_append (combo3_items, (gpointer) _("Sac_box"));
+  combo3_items = g_list_append (combo3_items, (gpointer) _("Cordeasauter"));
+  combo3_items = g_list_append (combo3_items, (gpointer) _("Veloelliptique"));
+  combo3_items = g_list_append (combo3_items, (gpointer) _("Sachbox"));
   combo3_items = g_list_append (combo3_items, (gpointer) _("Ballon"));
   gtk_combo_set_popdown_strings (GTK_COMBO (combo3), combo3_items);
   g_list_free (combo3_items);
 
   combo_entry3 = GTK_COMBO (combo3)->entry;
   gtk_widget_show (combo_entry3);
-  gtk_widget_set_size_request (combo_entry3, 600, -1);
   gtk_entry_set_text (GTK_ENTRY (combo_entry3), _("Tapis"));
   gtk_entry_set_invisible_char (GTK_ENTRY (combo_entry3), 8226);
 
@@ -704,12 +657,6 @@ create_yh_window (void)
   gtk_widget_set_size_request (label14, 600, 45);
   gtk_label_set_use_markup (GTK_LABEL (label14), TRUE);
 
-  labelTUE = gtk_label_new (_("<b><span foreground=\"black\" size =\"16000\">Taux D'utilisation Des \303\211quipements </span></b>\n"));
-  gtk_widget_show (labelTUE);
-  gtk_fixed_put (GTK_FIXED (fixed2), labelTUE, 24, 376);
-  gtk_widget_set_size_request (labelTUE, 400, 30);
-  gtk_label_set_use_markup (GTK_LABEL (labelTUE), TRUE);
-
   buttonCal = gtk_button_new ();
   gtk_widget_show (buttonCal);
   gtk_fixed_put (GTK_FIXED (fixed2), buttonCal, 448, 504);
@@ -732,12 +679,6 @@ create_yh_window (void)
   gtk_box_pack_start (GTK_BOX (hbox1), label12, FALSE, FALSE, 0);
   gtk_label_set_use_markup (GTK_LABEL (label12), TRUE);
 
-  labelEPR = gtk_label_new (_("<b><span foreground=\"black\" size =\"16000\">\303\211quipement Le Plus R\303\251serv\303\251</span></b>\n"));
-  gtk_widget_show (labelEPR);
-  gtk_fixed_put (GTK_FIXED (fixed2), labelEPR, 8, 144);
-  gtk_widget_set_size_request (labelEPR, 350, 30);
-  gtk_label_set_use_markup (GTK_LABEL (labelEPR), TRUE);
-
   labelEPR1 = gtk_label_new ("");
   gtk_widget_show (labelEPR1);
   gtk_fixed_put (GTK_FIXED (fixed2), labelEPR1, 544, 152);
@@ -748,27 +689,28 @@ create_yh_window (void)
   gtk_fixed_put (GTK_FIXED (fixed2), labelEPM1, 544, 224);
   gtk_widget_set_size_request (labelEPM1, 340, 17);
 
-  labelCPA = gtk_label_new (_("<b><span foreground=\"black\" size =\"16000\">Coach Le Plus Actif </span></b>\n"));
-  gtk_widget_show (labelCPA);
-  gtk_fixed_put (GTK_FIXED (fixed2), labelCPA, 48, 296);
-  gtk_widget_set_size_request (labelCPA, 200, 30);
-  gtk_label_set_use_markup (GTK_LABEL (labelCPA), TRUE);
-
-  labelEPM = gtk_label_new (_("<b><span foreground=\"black\" size =\"16000\">\303\211quipement Le Plus En Maintenance</span></b>\n"));
-  gtk_widget_show (labelEPM);
-  gtk_fixed_put (GTK_FIXED (fixed2), labelEPM, 32, 216);
-  gtk_widget_set_size_request (labelEPM, 400, 30);
-  gtk_label_set_use_markup (GTK_LABEL (labelEPM), TRUE);
-
   labelCPA1 = gtk_label_new ("");
   gtk_widget_show (labelCPA1);
   gtk_fixed_put (GTK_FIXED (fixed2), labelCPA1, 544, 288);
   gtk_widget_set_size_request (labelCPA1, 340, 17);
 
-  labelTUE1 = gtk_label_new ("");
-  gtk_widget_show (labelTUE1);
-  gtk_fixed_put (GTK_FIXED (fixed2), labelTUE1, 544, 384);
-  gtk_widget_set_size_request (labelTUE1, 340, 17);
+  labelEPM = gtk_label_new (_("<b><span foreground=\"black\" size =\"16000\">\303\211quipement Le Plus En Maintenance</span></b>\n"));
+  gtk_widget_show (labelEPM);
+  gtk_fixed_put (GTK_FIXED (fixed2), labelEPM, 16, 216);
+  gtk_widget_set_size_request (labelEPM, 400, 30);
+  gtk_label_set_use_markup (GTK_LABEL (labelEPM), TRUE);
+
+  labelEPR = gtk_label_new (_("<b><span foreground=\"black\" size =\"16000\">\303\211quipement Le Plus R\303\251serv\303\251</span></b>\n"));
+  gtk_widget_show (labelEPR);
+  gtk_fixed_put (GTK_FIXED (fixed2), labelEPR, 0, 144);
+  gtk_widget_set_size_request (labelEPR, 350, 30);
+  gtk_label_set_use_markup (GTK_LABEL (labelEPR), TRUE);
+
+  labelCPA = gtk_label_new (_("<b><span foreground=\"black\" size =\"16000\">Coach Le Plus Actif </span></b>\n"));
+  gtk_widget_show (labelCPA);
+  gtk_fixed_put (GTK_FIXED (fixed2), labelCPA, 32, 296);
+  gtk_widget_set_size_request (labelCPA, 200, 30);
+  gtk_label_set_use_markup (GTK_LABEL (labelCPA), TRUE);
 
   label3 = gtk_label_new (_("<b><span foreground=\"blue\" size=\"13000\">Statistiques</span></b>\n"));
   gtk_widget_show (label3);
@@ -884,13 +826,7 @@ create_yh_window (void)
   GLADE_HOOKUP_OBJECT (yh_window, alignment8, "alignment8");
   GLADE_HOOKUP_OBJECT (yh_window, vbox5, "vbox5");
   GLADE_HOOKUP_OBJECT (yh_window, scrolledwindow1, "scrolledwindow1");
-  GLADE_HOOKUP_OBJECT (yh_window, ctree1, "ctree1");
-  GLADE_HOOKUP_OBJECT (yh_window, label53, "label53");
-  GLADE_HOOKUP_OBJECT (yh_window, label54, "label54");
-  GLADE_HOOKUP_OBJECT (yh_window, label49, "label49");
-  GLADE_HOOKUP_OBJECT (yh_window, label50, "label50");
-  GLADE_HOOKUP_OBJECT (yh_window, label51, "label51");
-  GLADE_HOOKUP_OBJECT (yh_window, label52, "label52");
+  GLADE_HOOKUP_OBJECT (yh_window, treeview1, "treeview1");
   GLADE_HOOKUP_OBJECT (yh_window, statusbar3, "statusbar3");
   GLADE_HOOKUP_OBJECT (yh_window, label24, "label24");
   GLADE_HOOKUP_OBJECT (yh_window, label1, "label1");
@@ -929,19 +865,17 @@ create_yh_window (void)
   GLADE_HOOKUP_OBJECT (yh_window, fixed2, "fixed2");
   GLADE_HOOKUP_OBJECT (yh_window, image17, "image17");
   GLADE_HOOKUP_OBJECT (yh_window, label14, "label14");
-  GLADE_HOOKUP_OBJECT (yh_window, labelTUE, "labelTUE");
   GLADE_HOOKUP_OBJECT (yh_window, buttonCal, "buttonCal");
   GLADE_HOOKUP_OBJECT (yh_window, alignment1, "alignment1");
   GLADE_HOOKUP_OBJECT (yh_window, hbox1, "hbox1");
   GLADE_HOOKUP_OBJECT (yh_window, image5, "image5");
   GLADE_HOOKUP_OBJECT (yh_window, label12, "label12");
-  GLADE_HOOKUP_OBJECT (yh_window, labelEPR, "labelEPR");
   GLADE_HOOKUP_OBJECT (yh_window, labelEPR1, "labelEPR1");
   GLADE_HOOKUP_OBJECT (yh_window, labelEPM1, "labelEPM1");
-  GLADE_HOOKUP_OBJECT (yh_window, labelCPA, "labelCPA");
-  GLADE_HOOKUP_OBJECT (yh_window, labelEPM, "labelEPM");
   GLADE_HOOKUP_OBJECT (yh_window, labelCPA1, "labelCPA1");
-  GLADE_HOOKUP_OBJECT (yh_window, labelTUE1, "labelTUE1");
+  GLADE_HOOKUP_OBJECT (yh_window, labelEPM, "labelEPM");
+  GLADE_HOOKUP_OBJECT (yh_window, labelEPR, "labelEPR");
+  GLADE_HOOKUP_OBJECT (yh_window, labelCPA, "labelCPA");
   GLADE_HOOKUP_OBJECT (yh_window, label3, "label3");
 
   return yh_window;

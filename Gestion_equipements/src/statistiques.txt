@@ -1,0 +1,4 @@
+===== STATISTIQUES DES EQUIPEMENTS =====
+Equipement le plus réservé : Banc
+Equipement en maintenance  : EQ002,Haltere,Poids,4,RESERVE,EN_STOCK
+Coach le plus actif         : 1234

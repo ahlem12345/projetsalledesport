@@ -1,25 +1,18 @@
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+#include <config.h>
 #endif
-
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
 #include "callbacks.h"
 #include "interface.h"
 #include "support.h"
 #include "equipement.h"
 
-// Constantes pour les fichiers
 #define FICHIER_EQUIPEMENTS "equipements.txt"
 #define FICHIER_RESERVATIONS "reservations.txt"
-
-// ============================================================================
-// FONCTIONS UTILITAIRES POUR AFFICHAGE
-// ============================================================================
 
 // Fonction pour convertir l'état en chaîne (pour affichage)
 const char* etat_to_string(int etat) {
@@ -30,7 +23,6 @@ const char* etat_to_string(int etat) {
         default: return "INCONNU";
     }
 }
-
 // Fonction pour convertir la localisation en chaîne (pour affichage)
 const char* localisation_to_string(int loc) {
     switch(loc) {
@@ -39,10 +31,6 @@ const char* localisation_to_string(int loc) {
         default: return "INCONNU";
     }
 }
-
-// ============================================================================
-// FONCTIONS UTILITAIRES POUR FICHIER CSV
-// ============================================================================
 
 // Fonction pour convertir l'état en chaîne pour le fichier
 const char* etat_to_file_string(int etat) {
@@ -78,11 +66,7 @@ int string_to_localisation(const char* str) {
     return DANS_LA_SALLE;
 }
 
-// ============================================================================
-// FONCTIONS POUR MESSAGES
-// ============================================================================
 
-// Fonction pour afficher un message d'erreur
 void show_error_message(const char *message) {
     GtkWidget *dialog = gtk_message_dialog_new(NULL,
         GTK_DIALOG_MODAL,
@@ -93,7 +77,6 @@ void show_error_message(const char *message) {
     gtk_widget_destroy(dialog);
 }
 
-// Fonction pour afficher un message d'information
 void show_info_message(const char *message) {
     GtkWidget *dialog = gtk_message_dialog_new(NULL,
         GTK_DIALOG_MODAL,
@@ -104,7 +87,6 @@ void show_info_message(const char *message) {
     gtk_widget_destroy(dialog);
 }
 
-// Fonction pour afficher un message d'avertissement
 void show_warning_message(const char *message) {
     GtkWidget *dialog = gtk_message_dialog_new(NULL,
         GTK_DIALOG_MODAL,
@@ -115,17 +97,104 @@ void show_warning_message(const char *message) {
     gtk_widget_destroy(dialog);
 }
 
-// Fonction pour obtenir la date actuelle
 void get_current_date(char *date_str) {
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
     sprintf(date_str, "%02d/%02d/%04d", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900);
 }
 
+void rafraichir_treeview(GtkWidget *treeview) {
+    if (!treeview) return;
 
-// ============================================================================
-// CALLBACKS BOUTONS - RECHERCHE
-// ============================================================================
+    GtkListStore *store = gtk_list_store_new(6,
+        G_TYPE_STRING,
+        G_TYPE_STRING,
+        G_TYPE_STRING,
+        G_TYPE_INT,
+        G_TYPE_STRING,
+        G_TYPE_STRING);
+
+    FILE *f = fopen(FICHIER_EQUIPEMENTS, "r");
+    if (!f) return;
+
+    char ligne[512];
+    while (fgets(ligne, sizeof(ligne), f)) {
+        Equipement e;
+        char etat_str[50], loc_str[50];
+        if (sscanf(ligne, "%[^,],%[^,],%[^,],%d,%[^,],%s",
+                   e.reference, e.nom, e.type, &e.quantite,
+                   etat_str, loc_str) == 6) {
+            e.etat = string_to_etat(etat_str);
+            e.localisation = string_to_localisation(loc_str);
+
+            GtkTreeIter iter;
+            gtk_list_store_append(store, &iter);
+            gtk_list_store_set(store, &iter,
+                0, e.reference,
+                1, e.nom,
+                2, e.type,
+                3, e.quantite,
+                4, etat_to_string(e.etat),
+                5, localisation_to_string(e.localisation),
+                -1);
+        }
+    }
+    fclose(f);
+
+    gtk_tree_view_set_model(GTK_TREE_VIEW(treeview), GTK_TREE_MODEL(store));
+    g_object_unref(store);
+}
+
+void on_treeview1_row_activated(GtkTreeView *treeview, GtkTreePath *path,
+                               GtkTreeViewColumn *column, gpointer user_data)
+{
+    GtkTreeModel *model;
+    GtkTreeIter iter;
+
+    model = gtk_tree_view_get_model(treeview);
+
+    if (gtk_tree_model_get_iter(model, &iter, path)) {
+        gchar *ref;
+        gtk_tree_model_get(model, &iter, 0, &ref, -1); 
+
+        GtkWidget *dialog;
+        GtkWindow *parent = GTK_WINDOW(user_data); 
+        gchar *message = g_strdup_printf("Voulez-vous vraiment supprimer l'équipement %s ?", ref);
+        dialog = gtk_message_dialog_new(parent,
+                                        GTK_DIALOG_MODAL,
+                                        GTK_MESSAGE_QUESTION,
+                                        GTK_BUTTONS_YES_NO,
+                                        "%s", message);
+        gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+        gtk_widget_destroy(dialog);
+        g_free(message);
+
+        if (response == GTK_RESPONSE_YES) {
+            gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+
+            FILE *f = fopen("equipements.txt", "r");
+            FILE *temp = fopen("equipements_temp.txt", "w");
+            char line[256];
+            if (f && temp) {
+                while (fgets(line, sizeof(line), f)) {
+
+                    if (strncmp(line, ref, strlen(ref)) != 0) {
+                        fputs(line, temp);
+                    }
+                }
+                fclose(f);
+                fclose(temp);
+
+                remove("equipements.txt");
+                rename("equipements_temp.txt", "equipements.txt");
+            } else {
+                g_print("Erreur lors de l'ouverture du fichier.\n");
+            }
+        }
+
+        g_free(ref);
+    }
+}
 
 void on_buttonRech_clicked(GtkButton *button, gpointer user_data)
 {
@@ -151,7 +220,6 @@ void on_buttonRech_clicked(GtkButton *button, gpointer user_data)
         return;
     }
     
-    // Rechercher dans le fichier avec le format CSV
     FILE *f = fopen(FICHIER_EQUIPEMENTS, "r");
     if (!f) {
         show_error_message("Impossible d'ouvrir le fichier des équipements");
@@ -170,7 +238,6 @@ void on_buttonRech_clicked(GtkButton *button, gpointer user_data)
             if (strcmp(e.reference, reference) == 0) {
                 trouve = 1;
                 
-                // Convertir les chaînes en enum
                 e.etat = string_to_etat(etat_str);
                 e.localisation = string_to_localisation(loc_str);
                 
@@ -228,10 +295,6 @@ void on_buttonRech_clicked(GtkButton *button, gpointer user_data)
     }
 }
 
-// ============================================================================
-// CALLBACKS BOUTONS - MODIFICATION
-// ============================================================================
-
 void on_buttonModif_clicked(GtkButton *button, gpointer user_data)
 {
     GtkWidget *window = lookup_widget(GTK_WIDGET(button), "yh_window");
@@ -253,7 +316,6 @@ void on_buttonModif_clicked(GtkButton *button, gpointer user_data)
         return;
     }
     
-    // Récupérer les nouvelles valeurs
     const gchar *nom = gtk_entry_get_text(GTK_ENTRY(entryNom));
     const gchar *type = gtk_entry_get_text(GTK_ENTRY(combo_entry2));
     gint quantite = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(spinbutton2));
@@ -268,21 +330,18 @@ void on_buttonModif_clicked(GtkButton *button, gpointer user_data)
         return;
     }
     
-    // Déterminer l'état
     int etat = DISPO;
     if (radiobutton1 && gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radiobutton1))) {
         etat = MAINT;
     } else if (radiobutton3 && gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radiobutton3))) {
         etat = RESERVE;
     }
-    
-    // Déterminer la localisation
+
     int localisation = DANS_LA_SALLE;
     if (checkbutton1 && gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(checkbutton1))) {
         localisation = EN_STOCK;
     }
     
-    // Modification dans le fichier avec format CSV
     FILE *f = fopen(FICHIER_EQUIPEMENTS, "r");
     FILE *f_temp = fopen("temp_equip.txt", "w");
     
@@ -320,19 +379,21 @@ void on_buttonModif_clicked(GtkButton *button, gpointer user_data)
     fclose(f_temp);
     
     if (trouve) {
-        remove(FICHIER_EQUIPEMENTS);
-        rename("temp_equip.txt", FICHIER_EQUIPEMENTS);
-        show_info_message("Équipement modifié avec succès");
+    remove(FICHIER_EQUIPEMENTS);
+    rename("temp_equip.txt", FICHIER_EQUIPEMENTS);
+    show_info_message("Équipement modifié avec succès");
+
+    GtkWidget *treeview = lookup_widget(window, "treeview1");
+    if (treeview)
+        rafraichir_treeview(treeview);
 
     } else {
-        remove("temp_equip.txt");
-        show_error_message("Équipement non trouvé");
+    remove("temp_equip.txt");
+    show_error_message("Équipement non trouvé");
     }
+   
 }
 
-// ============================================================================
-// CALLBACKS BOUTONS - AJOUT
-// ============================================================================
 
 void on_buttonAjout_clicked(GtkButton *button, gpointer user_data)
 {
@@ -357,7 +418,6 @@ void on_buttonAjout_clicked(GtkButton *button, gpointer user_data)
     const gchar *type = gtk_entry_get_text(GTK_ENTRY(combo_entry2));
     gint quantite = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(spinbutton2));
     
-    // Validation des champs obligatoires
     if (strlen(reference) == 0 || strlen(nom) == 0 || strlen(type) == 0) {
         show_warning_message("Veuillez remplir tous les champs obligatoires");
         return;
@@ -368,7 +428,6 @@ void on_buttonAjout_clicked(GtkButton *button, gpointer user_data)
         return;
     }
     
-    // Vérifier si l'équipement existe déjà
     FILE *f_check = fopen(FICHIER_EQUIPEMENTS, "r");
     if (f_check) {
         char ligne[512];
@@ -385,7 +444,6 @@ void on_buttonAjout_clicked(GtkButton *button, gpointer user_data)
         fclose(f_check);
     }
     
-    // Déterminer l'état
     int etat = DISPO;
     if (radiobutton1 && gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radiobutton1))) {
         etat = MAINT;
@@ -393,20 +451,17 @@ void on_buttonAjout_clicked(GtkButton *button, gpointer user_data)
         etat = RESERVE;
     }
     
-    // Déterminer la localisation
     int localisation = DANS_LA_SALLE;
     if (checkbutton1 && gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(checkbutton1))) {
         localisation = EN_STOCK;
     }
     
-    // Écrire directement dans le fichier au format CSV
     FILE *f = fopen(FICHIER_EQUIPEMENTS, "a");
     if (!f) {
         show_error_message("Impossible d'ouvrir le fichier des équipements");
         return;
     }
     
-    // Format: ref,nom,type,quantite,etat,localisation
     fprintf(f, "%s,%s,%s,%d,%s,%s\n",
             reference, nom, type, quantite,
             etat_to_file_string(etat),
@@ -426,14 +481,16 @@ void on_buttonAjout_clicked(GtkButton *button, gpointer user_data)
     
     if (checkbutton2)
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(checkbutton2), TRUE);
+
+    GtkWidget *treeview = lookup_widget(window, "treeview1");
+    if (treeview)
+        rafraichir_treeview(treeview);
     
     show_info_message("Équipement ajouté avec succès");
 
-}
 
-// ============================================================================
-// CALLBACKS BOUTONS - SUPPRESSION
-// ============================================================================
+
+}
 
 void on_buttonSupp_clicked(GtkButton *button, gpointer user_data)
 {
@@ -470,7 +527,6 @@ void on_buttonSupp_clicked(GtkButton *button, gpointer user_data)
         return;
     }
     
-    // Demander confirmation
     GtkWidget *dialog = gtk_message_dialog_new(NULL,
         GTK_DIALOG_MODAL,
         GTK_MESSAGE_QUESTION,
@@ -481,7 +537,6 @@ void on_buttonSupp_clicked(GtkButton *button, gpointer user_data)
     gtk_widget_destroy(dialog);
     
     if (response == GTK_RESPONSE_YES) {
-        // Suppression avec format CSV
         FILE *f = fopen(FICHIER_EQUIPEMENTS, "r");
         FILE *f_temp = fopen("temp_supp.txt", "w");
         
@@ -498,7 +553,7 @@ void on_buttonSupp_clicked(GtkButton *button, gpointer user_data)
         while (fgets(ligne, sizeof(ligne), f)) {
             if (sscanf(ligne, "%[^,]", ref) == 1) {
                 if (strcmp(ref, reference) != 0) {
-                    // Garder cette ligne
+
                     fprintf(f_temp, "%s", ligne);
                 }
             }
@@ -510,7 +565,6 @@ void on_buttonSupp_clicked(GtkButton *button, gpointer user_data)
         remove(FICHIER_EQUIPEMENTS);
         rename("temp_supp.txt", FICHIER_EQUIPEMENTS);
         
-        // Réinitialiser les champs
         gtk_entry_set_text(GTK_ENTRY(entryRef), "");
         
         GtkWidget *entryNom = lookup_widget(window, "entryNom");
@@ -520,15 +574,16 @@ void on_buttonSupp_clicked(GtkButton *button, gpointer user_data)
         if (entryNom) gtk_entry_set_text(GTK_ENTRY(entryNom), "");
         if (combo_entry2) gtk_entry_set_text(GTK_ENTRY(combo_entry2), "");
         if (spinbutton2) gtk_spin_button_set_value(GTK_SPIN_BUTTON(spinbutton2), 1);
+
+        GtkWidget *treeview = lookup_widget(window, "treeview1");
+        if (treeview)
+        rafraichir_treeview(treeview);
         
         show_info_message("Équipement supprimé avec succès");
 
     }
 }
 
-// ============================================================================
-// AUTRES CALLBACKS
-// ============================================================================
 
 void on_radiobutton3_toggled(GtkToggleButton *togglebutton, gpointer user_data)
 {
@@ -673,7 +728,6 @@ on_buttonRes_clicked(GtkButton *button, gpointer user_data)
     r.active = 1;
     
     if (ajouterReservation(FICHIER_RESERVATIONS, r)) {
-        // Modifier l'état de l'équipement en RESERVE
         Equipement e;
         FILE *f = fopen(FICHIER_EQUIPEMENTS, "r");
         FILE *f2 = fopen("temp.txt", "w");
@@ -738,7 +792,6 @@ void on_buttonAnnul_clicked(GtkButton *button, gpointer user_data)
         return;
     }
     
-    // Annuler la réservation (utiliser les fonctions de equipement.c)
     if (annulerReservation(FICHIER_RESERVATIONS, (char*)id_coach, (char*)equipement)) {
         if (labelAffich) {
             char message[200];
@@ -757,16 +810,14 @@ void on_buttonAnnul_clicked(GtkButton *button, gpointer user_data)
 
 void on_buttonCal_clicked(GtkButton *button, gpointer user_data)
 {
-    // 1. Calculer les statistiques (backend)
     calculerStatistiques(FICHIER_EQUIPEMENTS, FICHIER_RESERVATIONS);
 
-    // 2. Variables pour stocker les valeurs
+
     char equipPlusRes[100] = "Aucun";
     char equipPlusMaint[100] = "Aucun";
     char coachPlusActif[100] = "Aucun";
 
 
-    // 3. Lire le fichier statistiques.txt
     FILE *fs = fopen("statistiques.txt", "r");
     if (!fs) {
         show_error_message("Impossible d'ouvrir statistiques.txt");
@@ -781,7 +832,7 @@ void on_buttonCal_clicked(GtkButton *button, gpointer user_data)
         p++; // avancer après ':'
         while (*p == ' ' || *p == '\t') p++; // supprimer espaces/tabs
 
-        // Récupérer les valeurs exactes
+
         if (strstr(ligne, "Equipement le plus réservé")) {
             strncpy(equipPlusRes, p, sizeof(equipPlusRes)-1);
             equipPlusRes[sizeof(equipPlusRes)-1] = '\0';
@@ -802,7 +853,7 @@ void on_buttonCal_clicked(GtkButton *button, gpointer user_data)
 
     fclose(fs);
 
-    // 4. Mettre à jour les labels GTK
+
     GtkWidget *window = lookup_widget(GTK_WIDGET(button), "yh_window");
     GtkWidget *labelEPR = lookup_widget(window, "labelEPR1");
     GtkWidget *labelEPM = lookup_widget(window, "labelEPM1");
@@ -820,8 +871,99 @@ void on_buttonCal_clicked(GtkButton *button, gpointer user_data)
 
 void on_buttonAff_clicked(GtkButton *button, gpointer user_data)
 {
-    GtkWidget *ctree1 = lookup_widget(GTK_WIDGET(button), "ctree1");
-    afficherEquipementsCTree(ctree1);
+    GtkWidget *window = lookup_widget(GTK_WIDGET(button), "yh_window");
+    GtkWidget *treeview = lookup_widget(window, "treeview1");
+
+    if (!treeview) return;
+
+    // Définir les colonnes si elles n'existent pas encore
+    if (gtk_tree_view_get_model(GTK_TREE_VIEW(treeview)) == NULL) {
+        GtkCellRenderer *renderer;
+        GtkTreeViewColumn *column;
+
+
+        renderer = gtk_cell_renderer_text_new();
+        column = gtk_tree_view_column_new_with_attributes("Référence", renderer, "text", 0, NULL);
+        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
+
+
+        renderer = gtk_cell_renderer_text_new();
+        column = gtk_tree_view_column_new_with_attributes("Nom", renderer, "text", 1, NULL);
+        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
+
+
+        renderer = gtk_cell_renderer_text_new();
+        column = gtk_tree_view_column_new_with_attributes("Type", renderer, "text", 2, NULL);
+        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
+
+
+        renderer = gtk_cell_renderer_text_new();
+        column = gtk_tree_view_column_new_with_attributes("Quantité", renderer, "text", 3, NULL);
+        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
+
+
+        renderer = gtk_cell_renderer_text_new();
+        column = gtk_tree_view_column_new_with_attributes("État", renderer, "text", 4, NULL);
+        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
+
+
+        renderer = gtk_cell_renderer_text_new();
+        column = gtk_tree_view_column_new_with_attributes("Localisation", renderer, "text", 5, NULL);
+        gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
+    }
+
+    GtkListStore *store = gtk_list_store_new(6,
+                                             G_TYPE_STRING, 
+                                             G_TYPE_STRING, 
+                                             G_TYPE_STRING, 
+                                             G_TYPE_INT,    
+                                             G_TYPE_STRING, 
+                                             G_TYPE_STRING  
+    );
+
+    FILE *f = fopen(FICHIER_EQUIPEMENTS, "r");
+    if (!f) {
+        show_error_message("Impossible d'ouvrir le fichier des équipements");
+        return;
+    }
+
+    char ligne[512];
+    while (fgets(ligne, sizeof(ligne), f)) {
+        Equipement e;
+        char etat_str[50], loc_str[50];
+
+        if (sscanf(ligne, "%[^,],%[^,],%[^,],%d,%[^,],%s",
+                   e.reference, e.nom, e.type, &e.quantite,
+                   etat_str, loc_str) == 6) {
+
+            e.etat = string_to_etat(etat_str);
+            e.localisation = string_to_localisation(loc_str);
+
+            GtkTreeIter iter;
+            gtk_list_store_append(store, &iter);
+            gtk_list_store_set(store, &iter,
+                               0, e.reference,
+                               1, e.nom,
+                               2, e.type,
+                               3, e.quantite,
+                               4, etat_to_string(e.etat),
+                               5, localisation_to_string(e.localisation),
+                               -1);
+        }
+    }
+    fclose(f);
+
+    gtk_tree_view_set_model(GTK_TREE_VIEW(treeview), GTK_TREE_MODEL(store));
+    g_object_unref(store);
+
+    
+    if (treeview != NULL) {
+        g_signal_connect(treeview, "row-activated",
+                     G_CALLBACK(on_treeview1_row_activated),
+                     NULL);
 }
+
+}
+
 
 
