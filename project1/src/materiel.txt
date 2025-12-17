@@ -1,8 +1,0 @@
-Ballon de football;10;disponible
-Tapis de yoga;5;indisponible
-Haltères 5kg;20;disponible
-Corde à sauter;15;disponible
-Ballon médecine;8;disponible
-Barre de traction;3;indisponible
-Banc de musculation;2;disponible
-Vélo d'appartement;4;disponible

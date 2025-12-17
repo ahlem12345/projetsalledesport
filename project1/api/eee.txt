@@ -1,3 +1,0 @@
-cd ~/Projects/project1/api
-python3 api.py
-

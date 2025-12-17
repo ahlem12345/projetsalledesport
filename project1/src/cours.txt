@@ -1,3 +1,0 @@
-Cardio;Privé;2;Ballon de football;Salle C
-Cardio;Privé;2;Ballon de football;Salle C
-Cardio;Privé;1;Ballon de football;Salle C
