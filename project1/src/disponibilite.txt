@@ -1,0 +1,12 @@
+Ballon de football;materiel;dispo;Salle A
+Tapis de yoga;materiel;dispo;Salle B
+Haltères 5kg;materiel;indispo;Salle C
+Corde à sauter;materiel;dispo;Salle A
+Ballon médecine;materiel;indispo;Salle B
+Barre de traction;materiel;dispo;Salle C
+Salle A;salle;dispo;
+Salle B;salle;indispo;
+Salle C;salle;dispo;
+Salle D;salle;dispo;
+Salle E;salle;dispo;
+Salle F;salle;indispo;
